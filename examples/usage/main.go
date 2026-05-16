@@ -5,8 +5,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/fatkulnurk/radix-converter-go/converter"
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func main() {
@@ -15,10 +14,9 @@ func main() {
 	// ==========================================
 	fmt.Println("=== ConverterFactory ===")
 
-	f := converter.NewConverterFactory()
+	f := radixconverter.NewConverterFactory()
 
-	// Create a Base62 converter
-	base62, err := f.Make(converter.Base62)
+	base62, err := f.Make(radixconverter.TypeBase62)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,19 +35,19 @@ func main() {
 	// ==========================================
 	fmt.Println("\n=== Direct Strategy Usage ===")
 
-	b62 := strategies.NewBase62()
+	b62 := radixconverter.NewBase62()
 	fmt.Printf("Base62: 42 -> %s\n", b62.Encode(42))
 
-	upper := strategies.NewAlphanumericUpper()
+	upper := radixconverter.NewAlphanumericUpper()
 	fmt.Printf("Upper36: 42 -> %s\n", upper.Encode(42))
 
-	lower := strategies.NewAlphanumericLower()
+	lower := radixconverter.NewAlphanumericLower()
 	fmt.Printf("Lower36: 42 -> %s\n", lower.Encode(42))
 
-	alpha := strategies.NewAlphaOnly()
+	alpha := radixconverter.NewAlphaOnly()
 	fmt.Printf("Alpha52: 42 -> %s\n", alpha.Encode(42))
 
-	hex := strategies.NewHex()
+	hex := radixconverter.NewHex()
 	fmt.Printf("Hex16: 255 -> %s\n", hex.Encode(255))
 
 	// ==========================================
@@ -58,11 +56,11 @@ func main() {
 	fmt.Println("\n=== All Converters (number=1000000) ===")
 
 	number := uint64(1000000)
-	types := []converter.ConverterType{
-		converter.Base62,
-		converter.AlphanumericUpper,
-		converter.AlphanumericLower,
-		converter.AlphaOnly,
+	types := []radixconverter.ConverterType{
+		radixconverter.TypeBase62,
+		radixconverter.TypeAlphanumericUpper,
+		radixconverter.TypeAlphanumericLower,
+		radixconverter.TypeAlphaOnly,
 	}
 
 	for _, typ := range types {
@@ -81,7 +79,6 @@ func main() {
 	shortCode := b62.Encode(dbID)
 	fmt.Printf("Database ID %d -> Short URL: https://short.link/%s\n", dbID, shortCode)
 
-	// Decode back
 	recovered, _ := b62.Decode(shortCode)
 	fmt.Printf("Short code %s -> Database ID: %d\n", shortCode, recovered)
 

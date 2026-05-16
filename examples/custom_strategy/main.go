@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/fatkulnurk/radix-converter-go/converter"
-	"github.com/fatkulnurk/radix-converter-go/radixerrors"
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 // BinaryConverter is a custom base-2 (binary) converter.
@@ -20,16 +18,16 @@ func NewBinaryConverter() *BinaryConverter {
 	return &BinaryConverter{
 		charset:   charset,
 		base:      uint64(len(charset)),
-		charIndex: strategies.BuildIndex(charset),
+		charIndex: radixconverter.BuildIndex(charset),
 	}
 }
 
 func (b *BinaryConverter) Encode(number uint64) string {
-	return strategies.Encode(number, b.charset, b.base)
+	return radixconverter.Encode(number, b.charset, b.base)
 }
 
 func (b *BinaryConverter) Decode(encoded string) (uint64, error) {
-	return strategies.Decode(encoded, b.base, b.charIndex)
+	return radixconverter.Decode(encoded, b.base, b.charIndex)
 }
 
 func (b *BinaryConverter) Charset() string {
@@ -48,16 +46,16 @@ func NewOctalConverter() *OctalConverter {
 	return &OctalConverter{
 		charset:   charset,
 		base:      uint64(len(charset)),
-		charIndex: strategies.BuildIndex(charset),
+		charIndex: radixconverter.BuildIndex(charset),
 	}
 }
 
 func (o *OctalConverter) Encode(number uint64) string {
-	return strategies.Encode(number, o.charset, o.base)
+	return radixconverter.Encode(number, o.charset, o.base)
 }
 
 func (o *OctalConverter) Decode(encoded string) (uint64, error) {
-	return strategies.Decode(encoded, o.base, o.charIndex)
+	return radixconverter.Decode(encoded, o.base, o.charIndex)
 }
 
 func (o *OctalConverter) Charset() string {
@@ -70,10 +68,10 @@ func main() {
 	// ==========================================
 	fmt.Println("=== Built-in Hex via Registry ===")
 
-	hex := strategies.NewHex()
-	converter.GlobalRegistry.Register("hex", hex)
+	hex := radixconverter.NewHex()
+	radixconverter.GlobalRegistry.Register("hex", hex)
 
-	f := converter.NewConverterFactory()
+	f := radixconverter.NewConverterFactory()
 	hexConv, err := f.MakeByName("hex")
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -81,7 +79,7 @@ func main() {
 	}
 	fmt.Printf("Hex: 255 -> %s\n", hexConv.Encode(255))
 
-	converter.GlobalRegistry.Unregister("hex")
+	radixconverter.GlobalRegistry.Unregister("hex")
 
 	// ==========================================
 	// 2. Custom Binary (Base-2) strategy
@@ -95,11 +93,10 @@ func main() {
 	val, _ := binary.Decode("101010")
 	fmt.Printf("Binary: 101010 -> %d\n", val)
 
-	// Register it
-	converter.GlobalRegistry.Register("binary", binary)
-	binaryFromRegistry, _ := converter.GlobalRegistry.Get("binary")
+	radixconverter.GlobalRegistry.Register("binary", binary)
+	binaryFromRegistry, _ := radixconverter.GlobalRegistry.Get("binary")
 	fmt.Printf("Registry Binary: 100 -> %s\n", binaryFromRegistry.Encode(100))
-	converter.GlobalRegistry.Unregister("binary")
+	radixconverter.GlobalRegistry.Unregister("binary")
 
 	// ==========================================
 	// 3. Custom Octal (Base-8) strategy
@@ -119,7 +116,7 @@ func main() {
 	fmt.Println("\n=== Custom Base64-like ===")
 
 	base64Charset := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	charIndex := strategies.BuildIndex(base64Charset)
+	charIndex := radixconverter.BuildIndex(base64Charset)
 
 	custom64 := &customBase64{
 		charset:   base64Charset,
@@ -133,26 +130,24 @@ func main() {
 	// ==========================================
 	fmt.Println("\n=== Registry Management ===")
 
-	converter.GlobalRegistry.Register("my_hex", strategies.NewHex())
-	converter.GlobalRegistry.Register("my_binary", NewBinaryConverter())
+	radixconverter.GlobalRegistry.Register("my_hex", radixconverter.NewHex())
+	radixconverter.GlobalRegistry.Register("my_binary", NewBinaryConverter())
 
-	names := converter.GlobalRegistry.GetRegisteredNames()
+	names := radixconverter.GlobalRegistry.GetRegisteredNames()
 	fmt.Printf("Registered: %v\n", names)
 
-	// Check existence
-	fmt.Printf("Has 'my_hex': %v\n", converter.GlobalRegistry.Has("my_hex"))
-	fmt.Printf("Has 'unknown': %v\n", converter.GlobalRegistry.Has("unknown"))
+	fmt.Printf("Has 'my_hex': %v\n", radixconverter.GlobalRegistry.Has("my_hex"))
+	fmt.Printf("Has 'unknown': %v\n", radixconverter.GlobalRegistry.Has("unknown"))
 
-	// Clear all
-	converter.GlobalRegistry.Clear()
-	fmt.Printf("After clear, registered: %v\n", converter.GlobalRegistry.GetRegisteredNames())
+	radixconverter.GlobalRegistry.Clear()
+	fmt.Printf("After clear, registered: %v\n", radixconverter.GlobalRegistry.GetRegisteredNames())
 
 	// ==========================================
 	// 6. Using ConverterManager with custom converters
 	// ==========================================
 	fmt.Println("\n=== ConverterManager with Custom ===")
 
-	m := converter.NewConverterManager()
+	m := radixconverter.NewConverterManager()
 	_ = m.RegisterCustom("octal", NewOctalConverter())
 
 	encoded, _ := m.Encode("octal", 64)
@@ -171,16 +166,13 @@ type customBase64 struct {
 }
 
 func (c *customBase64) Encode(number uint64) string {
-	return strategies.Encode(number, c.charset, c.base)
+	return radixconverter.Encode(number, c.charset, c.base)
 }
 
 func (c *customBase64) Decode(encoded string) (uint64, error) {
-	return strategies.Decode(encoded, c.base, c.charIndex)
+	return radixconverter.Decode(encoded, c.base, c.charIndex)
 }
 
 func (c *customBase64) Charset() string {
 	return c.charset
 }
-
-// Verify at compile time that it implements the error interface.
-var _ = (*radixerrors.Error)(nil)
