@@ -1,12 +1,6 @@
-package converter
-
-import (
-	"github.com/fatkulnurk/radix-converter-go/radixerrors"
-)
+package radixconverter
 
 // BaseConverter provides the core radix conversion algorithm.
-// It is designed to be embedded via composition in concrete strategy types.
-// Deprecated: Use strategies package directly. This type is kept for backward compatibility.
 type BaseConverter struct {
 	charset   string
 	base      uint64
@@ -14,7 +8,6 @@ type BaseConverter struct {
 }
 
 // NewBaseConverter creates a new BaseConverter with the given charset.
-// It panics if charset is empty.
 func NewBaseConverter(charset string) *BaseConverter {
 	if charset == "" {
 		panic("radix converter: charset cannot be empty")
@@ -33,7 +26,6 @@ func NewBaseConverter(charset string) *BaseConverter {
 	return bc
 }
 
-// Encode converts a non-negative integer to its string representation.
 func (bc *BaseConverter) Encode(number uint64) string {
 	if number == 0 {
 		return bc.charset[:1]
@@ -46,7 +38,6 @@ func (bc *BaseConverter) Encode(number uint64) string {
 		number /= bc.base
 	}
 
-	// Reverse in place.
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}
@@ -54,17 +45,16 @@ func (bc *BaseConverter) Encode(number uint64) string {
 	return string(result)
 }
 
-// Decode converts a string representation back to its integer value.
 func (bc *BaseConverter) Decode(encoded string) (uint64, error) {
 	if encoded == "" {
-		return 0, radixerrors.ErrEmptyEncoded
+		return 0, ErrEmptyEncoded
 	}
 
 	var result uint64
 	for _, char := range encoded {
 		pos, ok := bc.charIndex[char]
 		if !ok {
-			return 0, radixerrors.NewInvalidCharError(char)
+			return 0, NewInvalidCharError(char)
 		}
 		result = result*bc.base + uint64(pos)
 	}
@@ -72,12 +62,10 @@ func (bc *BaseConverter) Decode(encoded string) (uint64, error) {
 	return result, nil
 }
 
-// Charset returns the charset used by this converter.
 func (bc *BaseConverter) Charset() string {
 	return bc.charset
 }
 
-// Base returns the base (radix) of this converter.
 func (bc *BaseConverter) Base() uint64 {
 	return bc.base
 }
