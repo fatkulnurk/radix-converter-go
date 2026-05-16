@@ -3,7 +3,6 @@ version: "2"
 linters:
   default: none
   enable:
-    - gofmt
     - govet
     - errcheck
     - staticcheck
@@ -11,6 +10,6 @@ linters:
     - ineffassign
     - unused
 
-issues:
-  exclude-dirs:
-    - examples
+formatters:
+  enable:
+    - gofmt
