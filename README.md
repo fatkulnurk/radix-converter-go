@@ -327,7 +327,3 @@ go test -cover ./...
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
-
-## Author
-
-**fatkulnurk** — [fatkulnurk@gmail.com](mailto:fatkulnurk@gmail.com)
