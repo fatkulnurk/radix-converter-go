@@ -11,7 +11,7 @@ Ported from the PHP library [fatkulnurk/radix-converter](https://github.com/fatk
 - **Thread-safe**: All components use `sync.RWMutex` for safe concurrent access
 - **Factory pattern**: Create converters on demand
 - **Manager pattern**: Cached instances, suitable for dependency injection and long-running servers
-- **Custom error types**: Structured error handling with `radixerrors.Error`
+- **Custom error types**: Structured error handling with `radixconverter.Error`
 - **Zero dependencies**: Pure Go, no external packages required
 - **Comprehensive tests**: Full coverage across all strategies, factory, manager, and registry
 - **Benchmarks**: Performance metrics included
@@ -35,76 +35,67 @@ import (
     "fmt"
     "log"
 
-    "github.com/fatkulnurk/radix-converter-go/converter"
-    "github.com/fatkulnurk/radix-converter-go/strategies"
+    "github.com/fatkulnurk/radix-converter-go"
 )
 
 func main() {
     // Direct strategy usage
-    b62 := strategies.NewBase62()
+    b62 := radixconverter.NewBase62()
     encoded := b62.Encode(123456789)
-    fmt.Printf("Encoded: %s\n", encoded) // "Encoded: a0UKg"
+    fmt.Printf("Encoded: %s\n", encoded)
 
     decoded, err := b62.Decode(encoded)
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Printf("Decoded: %d\n", decoded) // "Decoded: 123456789"
+    fmt.Printf("Decoded: %d\n", decoded)
 
     // Using ConverterFactory
-    f := converter.NewConverterFactory()
-    conv, _ := f.Make(converter.Base62)
+    f := radixconverter.NewConverterFactory()
+    conv, _ := f.Make(radixconverter.TypeBase62)
     fmt.Println(conv.Encode(42)) // "g"
 }
 ```
 
 ## Built-in Converters
 
-| Converter                  | Type Constant              | Charset                                    | Base |
-|----------------------------|----------------------------|--------------------------------------------|------|
-| **Base62**                 | `converter.Base62`         | `0-9a-zA-Z`                                | 62   |
-| **Alphanumeric Upper**     | `converter.AlphanumericUpper` | `0-9A-Z`                             | 36   |
-| **Alphanumeric Lower**     | `converter.AlphanumericLower` | `0-9a-z`                             | 36   |
-| **Alpha Only**             | `converter.AlphaOnly`      | `a-zA-Z`                                   | 52   |
-| **Hex**                    | (custom)                   | `0-9a-f`                                   | 16   |
+| Converter                  | Type Constant                       | Charset                                    | Base |
+|----------------------------|-------------------------------------|--------------------------------------------|------|
+| **Base62**                 | `radixconverter.TypeBase62`         | `0-9a-zA-Z`                                | 62   |
+| **Alphanumeric Upper**     | `radixconverter.TypeAlphanumericUpper` | `0-9A-Z`                             | 36   |
+| **Alphanumeric Lower**     | `radixconverter.TypeAlphanumericLower` | `0-9a-z`                             | 36   |
+| **Alpha Only**             | `radixconverter.TypeAlphaOnly`      | `a-zA-Z`                                   | 52   |
+| **Hex**                    | (custom)                            | `0-9a-f`                                   | 16   |
 
 ### Using Each Converter
 
 ```go
-import (
-    "fmt"
+import "github.com/fatkulnurk/radix-converter-go"
 
-    "github.com/fatkulnurk/radix-converter-go/strategies"
-)
+b62 := radixconverter.NewBase62()
+fmt.Println(b62.Encode(1000000)) // "QgUK"
 
-func main() {
-    b62 := strategies.NewBase62()
-    fmt.Println(b62.Encode(1000000)) // "QgUK"
+upper := radixconverter.NewAlphanumericUpper()
+fmt.Println(upper.Encode(1000000)) // "QGLS"
 
-    upper := strategies.NewAlphanumericUpper()
-    fmt.Println(upper.Encode(1000000)) // "QGLS"
+lower := radixconverter.NewAlphanumericLower()
+fmt.Println(lower.Encode(1000000)) // "qglu"
 
-    lower := strategies.NewAlphanumericLower()
-    fmt.Println(lower.Encode(1000000)) // "qglu"
+alpha := radixconverter.NewAlphaOnly()
+fmt.Println(alpha.Encode(1000000)) // "CysW"
 
-    alpha := strategies.NewAlphaOnly()
-    fmt.Println(alpha.Encode(1000000)) // "CysW"
-
-    hex := strategies.NewHex()
-    fmt.Println(hex.Encode(255)) // "ff"
-}
+hex := radixconverter.NewHex()
+fmt.Println(hex.Encode(255)) // "ff"
 ```
 
 ## URL Shortener Example
 
 ```go
-// Encode a database ID to a short code
-b62 := strategies.NewBase62()
+b62 := radixconverter.NewBase62()
 dbID := uint64(4857293)
 shortCode := b62.Encode(dbID)
 // https://short.link/W8nR
 
-// Decode back to the original ID
 recovered, _ := b62.Decode(shortCode)
 // recovered == 4857293
 ```
@@ -114,12 +105,12 @@ recovered, _ := b62.Decode(shortCode)
 The `ConverterFactory` creates new converter instances on each call. It checks the global `CustomConverterRegistry` first, then falls back to built-in types.
 
 ```go
-import "github.com/fatkulnurk/radix-converter-go/converter"
+import "github.com/fatkulnurk/radix-converter-go"
 
-f := converter.NewConverterFactory()
+f := radixconverter.NewConverterFactory()
 
 // Built-in type
-c, err := f.Make(converter.Base62)
+c, err := f.Make(radixconverter.TypeBase62)
 
 // By string name (checks custom registry first)
 c, err := f.MakeByName("my_custom_converter")
@@ -130,20 +121,16 @@ c, err := f.MakeByName("my_custom_converter")
 The `ConverterManager` caches built-in converters and supports custom converter registration. It is **thread-safe** and ideal for dependency injection and long-running processes.
 
 ```go
-import "github.com/fatkulnurk/radix-converter-go/converter"
+import "github.com/fatkulnurk/radix-converter-go"
 
-// Create manager with optional custom converters
-m := converter.NewConverterManager()
+m := radixconverter.NewConverterManager()
 
-// Register a custom converter
-_ = m.RegisterCustom("hex", strategies.NewHex())
+_ = m.RegisterCustom("hex", radixconverter.NewHex())
 
-// Encode/decode via manager
-encoded, _ := m.Encode(converter.Base62, 12345)
-decoded, _ := m.Decode(converter.Base62, encoded)
+encoded, _ := m.Encode(radixconverter.TypeBase62, 12345)
+decoded, _ := m.Decode(radixconverter.TypeBase62, encoded)
 
-// Get cached converter directly
-c, _ := m.Get(converter.Base62)
+c, _ := m.Get(radixconverter.TypeBase62)
 fmt.Println(c.Encode(42))
 
 // Management methods
@@ -155,55 +142,53 @@ m.ClearAll()                // clears everything
 
 ## BaseConverter for Composition
 
-The `converter.BaseConverter` struct provides the core algorithm and can be embedded in your own types:
+The `BaseConverter` struct provides the core algorithm and can be embedded in your own types:
 
 ```go
-import "github.com/fatkulnurk/radix-converter-go/converter"
+import "github.com/fatkulnurk/radix-converter-go"
 
 type MyConverter struct {
-    *converter.BaseConverter
+    *radixconverter.BaseConverter
 }
 
 func NewMyConverter() *MyConverter {
     return &MyConverter{
-        BaseConverter: converter.NewBaseConverter("0123456789ABCDEF"),
+        BaseConverter: radixconverter.NewBaseConverter("0123456789ABCDEF"),
     }
 }
 ```
 
 ## Memory Safety & Dependency Injection
 
-The `ConverterManager` is designed for safe use in **long-running server processes** (analogous to Laravel Octane/Swoole environments in PHP). Each manager instance maintains isolated state.
+The `ConverterManager` is designed for safe use in **long-running server processes**. Each manager instance maintains isolated state.
 
 ```go
-import "github.com/fatkulnurk/radix-converter-go/converter"
+import "github.com/fatkulnurk/radix-converter-go"
 
 // Each goroutine/request gets its own manager — no shared state
 func handleRequest(id int) {
-    m := converter.NewConverterManager()
-    encoded, _ := m.Encode(converter.Base62, uint64(id*100))
+    m := radixconverter.NewConverterManager()
+    encoded, _ := m.Encode(radixconverter.TypeBase62, uint64(id*100))
     fmt.Printf("Request %d: %d -> %s\n", id, id*100, encoded)
 }
 
 // Dependency injection
 type URLShortener struct {
-    manager *converter.ConverterManager
+    manager *radixconverter.ConverterManager
 }
 
 func (s *URLShortener) Shorten(id uint64) string {
-    encoded, _ := s.manager.Encode(converter.Base62, id)
+    encoded, _ := s.manager.Encode(radixconverter.TypeBase62, id)
     return encoded
 }
 ```
 
 ## Custom Converters
 
-Create your own charset by implementing the `converter.IDConverter` interface:
+Create your own charset using the shared helpers:
 
 ```go
-import (
-    "github.com/fatkulnurk/radix-converter-go/strategies"
-)
+import "github.com/fatkulnurk/radix-converter-go"
 
 type MyConverter struct {
     charset   string
@@ -212,20 +197,20 @@ type MyConverter struct {
 }
 
 func NewMyConverter() *MyConverter {
-    charset := "ABCDEF0123456789" // your custom charset
+    charset := "ABCDEF0123456789"
     return &MyConverter{
         charset:   charset,
         base:      uint64(len(charset)),
-        charIndex: strategies.BuildIndex(charset),
+        charIndex: radixconverter.BuildIndex(charset),
     }
 }
 
 func (m *MyConverter) Encode(number uint64) string {
-    return strategies.Encode(number, m.charset, m.base)
+    return radixconverter.Encode(number, m.charset, m.base)
 }
 
 func (m *MyConverter) Decode(encoded string) (uint64, error) {
-    return strategies.Decode(encoded, m.base, m.charIndex)
+    return radixconverter.Decode(encoded, m.base, m.charIndex)
 }
 
 func (m *MyConverter) Charset() string {
@@ -237,10 +222,10 @@ Then register it:
 
 ```go
 // Via global registry (NOT recommended for long-running servers)
-converter.GlobalRegistry.Register("my_conv", NewMyConverter())
+radixconverter.GlobalRegistry.Register("my_conv", NewMyConverter())
 
 // Via ConverterManager (recommended)
-m := converter.NewConverterManager()
+m := radixconverter.NewConverterManager()
 _ = m.RegisterCustom("my_conv", NewMyConverter())
 ```
 
@@ -248,34 +233,33 @@ _ = m.RegisterCustom("my_conv", NewMyConverter())
 
 ## Error Handling
 
-All errors are structured as `*radixerrors.Error` for easy inspection:
+All errors are structured as `*radixconverter.Error` for easy inspection:
 
 ```go
 import (
     "errors"
 
-    "github.com/fatkulnurk/radix-converter-go/radixerrors"
+    "github.com/fatkulnurk/radix-converter-go"
 )
 
 _, err := b62.Decode("")
-if errors.Is(err, radixerrors.ErrEmptyEncoded) {
+if errors.Is(err, radixconverter.ErrEmptyEncoded) {
     // handle empty input
 }
 
 _, err = b62.Decode("!@#")
 if err != nil {
-    // err contains invalid character info
     fmt.Println(err) // "radix converter: decode: invalid character: '!'"
 }
 ```
 
 Available sentinel errors:
-- `radixerrors.ErrNegativeInput` — Negative number provided for encoding (defensive; `uint64` prevents this at compile time)
-- `radixerrors.ErrEmptyEncoded` — Attempted to decode an empty string
-- `radixerrors.ErrInvalidChar` — Invalid character found during decoding
-- `radixerrors.ErrUnknownConverter` — Unknown converter type requested
-- `radixerrors.ErrConverterAlreadyRegistered` — Duplicate custom converter registration
-- `radixerrors.ErrConverterNotRegistered` — Custom converter not found
+- `radixconverter.ErrNegativeInput` — Negative number provided for encoding (defensive; `uint64` prevents this at compile time)
+- `radixconverter.ErrEmptyEncoded` — Attempted to decode an empty string
+- `radixconverter.ErrInvalidChar` — Invalid character found during decoding
+- `radixconverter.ErrUnknownConverter` — Unknown converter type requested
+- `radixconverter.ErrConverterAlreadyRegistered` — Duplicate custom converter registration
+- `radixconverter.ErrConverterNotRegistered` — Custom converter not found
 
 ## Project Structure
 
@@ -284,37 +268,30 @@ radix-converter-go/
 ├── go.mod
 ├── README.md
 ├── .gitignore
-├── converter/                        # Core types: Factory, Manager, Registry
-│   ├── idconverter.go                # IDConverter interface (Encode/Decode)
-│   ├── type.go                       # ConverterType constants (Base62, etc.)
-│   ├── baseconverter.go              # BaseConverter (composition-friendly)
-│   ├── factory.go                    # ConverterFactory (Make/MakeByName)
-│   ├── manager.go                    # ConverterManager (thread-safe, cached)
-│   ├── registry.go                   # CustomConverterRegistry (thread-safe)
-│   ├── custom_converter.go           # CustomRegistry alias for GlobalRegistry
-│   └── tests/                        # Tests for converter package
-├── strategies/                       # Built-in converter strategies
-│   ├── converter.go                  # Shared Encode/Decode/BuildIndex helpers
-│   ├── base62.go                     # Base62 strategy
-│   ├── alphanumericupper.go          # AlphanumericUpper strategy
-│   ├── alphanumericlower.go          # AlphanumericLower strategy
-│   ├── alphaonly.go                  # AlphaOnly strategy
-│   ├── hex.go                        # Hex strategy
-│   └── tests/                        # Tests + benchmarks for strategies
-├── radixerrors/                      # Error types
-│   ├── radixerrors.go                # Error struct and sentinel errors
-│   └── radixerrors_test.go           # Error tests
+├── idconverter.go           # IDConverter interface (Encode/Decode)
+├── type.go                  # ConverterType constants (TypeBase62, etc.)
+├── baseconverter.go         # BaseConverter (composition-friendly)
+├── converter.go             # Shared Encode/Decode/BuildIndex helpers
+├── factory.go               # ConverterFactory (Make/MakeByName)
+├── manager.go               # ConverterManager (thread-safe, cached)
+├── registry.go              # CustomConverterRegistry (thread-safe)
+├── custom_converter.go      # CustomRegistry alias for GlobalRegistry
+├── errors.go                # Error struct and sentinel errors
+├── base62.go                # Base62 strategy
+├── alphanumericlower.go     # AlphanumericLower strategy
+├── alphanumericupper.go     # AlphanumericUpper strategy
+├── alphaonly.go             # AlphaOnly strategy
+├── hex.go                   # Hex strategy
+├── *_test.go                # Tests + benchmarks
 └── examples/
-    ├── usage/main.go                 # Basic usage examples
-    └── custom_strategy/main.go       # Custom converter & registry examples
+    ├── usage/main.go        # Basic usage examples
+    └── custom_strategy/     # Custom converter & registry examples
 ```
 
 ## Benchmarks
 
-Run the benchmarks:
-
 ```bash
-go test -bench=. -benchmem ./strategies/tests/
+go test -bench=. -benchmem .
 ```
 
 Sample output:
@@ -339,11 +316,12 @@ go test -cover ./...
 
 | Feature              | PHP Version                     | Go Version                              |
 |----------------------|----------------------------------|------------------------------------------|
+| Package              | `Fatkulnurk\RadixConverter`     | `radixconverter`                        |
 | Encoding             | `int` (signed 64-bit)           | `uint64` (unsigned 64-bit)              |
 | Concurrency          | Not applicable (PHP-FPM model)  | Thread-safe with `sync.RWMutex`         |
 | Custom converters    | Static global registry           | Both global registry and per-instance manager |
 | Framework support    | Laravel service provider        | Pure Go library, framework-agnostic     |
-| Error handling       | Exceptions (`ConverterException`) | Typed errors (`radixerrors.Error`)      |
+| Error handling       | Exceptions (`ConverterException`) | Typed errors (`radixconverter.Error`)  |
 | Octane/Swoole safety | Manager only (not static registry) | Manager recommended, registry has mutex |
 
 ## License
