@@ -1,6 +1,4 @@
-package strategies
-
-import "github.com/fatkulnurk/radix-converter-go/radixerrors"
+package radixconverter
 
 // BuildIndex creates a character-to-index map from a charset.
 func BuildIndex(charset string) map[rune]int {
@@ -24,7 +22,6 @@ func Encode(number uint64, charset string, base uint64) string {
 		number /= base
 	}
 
-	// Reverse in place.
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}
@@ -35,14 +32,14 @@ func Encode(number uint64, charset string, base uint64) string {
 // Decode performs the radix decoding algorithm.
 func Decode(encoded string, base uint64, charIndex map[rune]int) (uint64, error) {
 	if encoded == "" {
-		return 0, radixerrors.ErrEmptyEncoded
+		return 0, ErrEmptyEncoded
 	}
 
 	var result uint64
 	for _, char := range encoded {
 		pos, ok := charIndex[char]
 		if !ok {
-			return 0, radixerrors.NewInvalidCharError(char)
+			return 0, NewInvalidCharError(char)
 		}
 		result = result*base + uint64(pos)
 	}
