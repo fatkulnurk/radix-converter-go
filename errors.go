@@ -22,12 +22,12 @@ func (e *Error) Is(target error) bool {
 }
 
 var (
-	ErrNegativeInput             = &Error{Op: "encode", Err: fmt.Errorf("input number must be non-negative")}
-	ErrEmptyEncoded              = &Error{Op: "decode", Err: fmt.Errorf("encoded value cannot be empty")}
-	ErrInvalidChar               = &Error{Op: "decode", Err: fmt.Errorf("invalid character found")}
-	ErrUnknownConverter          = &Error{Op: "create", Err: fmt.Errorf("unknown converter type")}
+	ErrNegativeInput              = &Error{Op: "encode", Err: fmt.Errorf("input number must be non-negative")}
+	ErrEmptyEncoded               = &Error{Op: "decode", Err: fmt.Errorf("encoded value cannot be empty")}
+	ErrInvalidChar                = &Error{Op: "decode", Err: fmt.Errorf("invalid character found")}
+	ErrUnknownConverter           = &Error{Op: "create", Err: fmt.Errorf("unknown converter type")}
 	ErrConverterAlreadyRegistered = &Error{Op: "register", Err: fmt.Errorf("converter is already registered")}
-	ErrConverterNotRegistered    = &Error{Op: "get", Err: fmt.Errorf("converter is not registered")}
+	ErrConverterNotRegistered     = &Error{Op: "get", Err: fmt.Errorf("converter is not registered")}
 )
 
 func NewInvalidCharError(char rune) error {
