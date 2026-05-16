@@ -69,7 +69,7 @@ func main() {
 	fmt.Println("=== Built-in Hex via Registry ===")
 
 	hex := radixconverter.NewHex()
-	radixconverter.GlobalRegistry.Register("hex", hex)
+	_ = radixconverter.GlobalRegistry.Register("hex", hex)
 
 	f := radixconverter.NewConverterFactory()
 	hexConv, err := f.MakeByName("hex")
@@ -93,7 +93,7 @@ func main() {
 	val, _ := binary.Decode("101010")
 	fmt.Printf("Binary: 101010 -> %d\n", val)
 
-	radixconverter.GlobalRegistry.Register("binary", binary)
+	_ = radixconverter.GlobalRegistry.Register("binary", binary)
 	binaryFromRegistry, _ := radixconverter.GlobalRegistry.Get("binary")
 	fmt.Printf("Registry Binary: 100 -> %s\n", binaryFromRegistry.Encode(100))
 	radixconverter.GlobalRegistry.Unregister("binary")
@@ -130,8 +130,8 @@ func main() {
 	// ==========================================
 	fmt.Println("\n=== Registry Management ===")
 
-	radixconverter.GlobalRegistry.Register("my_hex", radixconverter.NewHex())
-	radixconverter.GlobalRegistry.Register("my_binary", NewBinaryConverter())
+	_ = radixconverter.GlobalRegistry.Register("my_hex", radixconverter.NewHex())
+	_ = radixconverter.GlobalRegistry.Register("my_binary", NewBinaryConverter())
 
 	names := radixconverter.GlobalRegistry.GetRegisteredNames()
 	fmt.Printf("Registered: %v\n", names)
