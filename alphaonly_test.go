@@ -1,13 +1,13 @@
-package strategies_test
+package radixconverter_test
 
 import (
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestAlphaOnly_Encode(t *testing.T) {
-	c := strategies.NewAlphaOnly()
+	c := radixconverter.NewAlphaOnly()
 	tests := []struct {
 		input uint64
 		want  string
@@ -26,7 +26,7 @@ func TestAlphaOnly_Encode(t *testing.T) {
 }
 
 func TestAlphaOnly_Decode(t *testing.T) {
-	c := strategies.NewAlphaOnly()
+	c := radixconverter.NewAlphaOnly()
 	if got, err := c.Decode("bW"); err != nil {
 		t.Fatalf("Decode(\"bW\") error: %v", err)
 	} else if got != 100 {
@@ -35,7 +35,7 @@ func TestAlphaOnly_Decode(t *testing.T) {
 }
 
 func TestAlphaOnly_RoundTrip(t *testing.T) {
-	c := strategies.NewAlphaOnly()
+	c := radixconverter.NewAlphaOnly()
 	values := []uint64{0, 1, 10, 25, 51, 52, 100, 1000}
 	for _, v := range values {
 		encoded := c.Encode(v)

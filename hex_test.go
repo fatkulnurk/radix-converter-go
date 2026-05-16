@@ -1,13 +1,13 @@
-package strategies_test
+package radixconverter_test
 
 import (
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestHex_Encode(t *testing.T) {
-	c := strategies.NewHex()
+	c := radixconverter.NewHex()
 	tests := []struct {
 		input uint64
 		want  string
@@ -25,7 +25,7 @@ func TestHex_Encode(t *testing.T) {
 }
 
 func TestHex_Decode(t *testing.T) {
-	c := strategies.NewHex()
+	c := radixconverter.NewHex()
 	tests := []struct {
 		input string
 		want  uint64
@@ -47,7 +47,7 @@ func TestHex_Decode(t *testing.T) {
 }
 
 func TestHex_RoundTrip(t *testing.T) {
-	c := strategies.NewHex()
+	c := radixconverter.NewHex()
 	values := []uint64{0, 1, 10, 15, 16, 255, 256, 1000, 4096}
 	for _, v := range values {
 		encoded := c.Encode(v)

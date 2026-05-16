@@ -1,13 +1,13 @@
-package strategies_test
+package radixconverter_test
 
 import (
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestAlphanumericLower_Encode(t *testing.T) {
-	c := strategies.NewAlphanumericLower()
+	c := radixconverter.NewAlphanumericLower()
 	tests := []struct {
 		input uint64
 		want  string
@@ -24,7 +24,7 @@ func TestAlphanumericLower_Encode(t *testing.T) {
 }
 
 func TestAlphanumericLower_Decode(t *testing.T) {
-	c := strategies.NewAlphanumericLower()
+	c := radixconverter.NewAlphanumericLower()
 	if got, err := c.Decode("rs"); err != nil {
 		t.Fatalf("Decode(\"rs\") error: %v", err)
 	} else if got != 1000 {
@@ -33,7 +33,7 @@ func TestAlphanumericLower_Decode(t *testing.T) {
 }
 
 func TestAlphanumericLower_RoundTrip(t *testing.T) {
-	c := strategies.NewAlphanumericLower()
+	c := radixconverter.NewAlphanumericLower()
 	values := []uint64{0, 1, 10, 35, 36, 100, 1000, 10000}
 	for _, v := range values {
 		encoded := c.Encode(v)

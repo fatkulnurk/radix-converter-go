@@ -1,20 +1,20 @@
-package strategies_test
+package radixconverter_test
 
 import (
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestBase62_EncodeZero(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	if got := c.Encode(0); got != "0" {
 		t.Errorf("Encode(0) = %q, want %q", got, "0")
 	}
 }
 
 func TestBase62_EncodeSmall(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	tests := []struct {
 		input uint64
 		want  string
@@ -32,14 +32,14 @@ func TestBase62_EncodeSmall(t *testing.T) {
 }
 
 func TestBase62_Encode12345(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	if got := c.Encode(12345); got != "3d7" {
 		t.Errorf("Encode(12345) = %q, want %q", got, "3d7")
 	}
 }
 
 func TestBase62_Decode(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	tests := []struct {
 		input string
 		want  uint64
@@ -63,7 +63,7 @@ func TestBase62_Decode(t *testing.T) {
 }
 
 func TestBase62_RoundTrip(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	values := []uint64{0, 1, 10, 36, 62, 100, 1000, 12345, 1000000}
 	for _, v := range values {
 		encoded := c.Encode(v)
@@ -79,7 +79,7 @@ func TestBase62_RoundTrip(t *testing.T) {
 }
 
 func TestBase62_Charset(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	want := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	if got := c.Charset(); got != want {
 		t.Errorf("Charset() = %q, want %q", got, want)
@@ -87,7 +87,7 @@ func TestBase62_Charset(t *testing.T) {
 }
 
 func TestBase62_DecodeEmptyString(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	_, err := c.Decode("")
 	if err == nil {
 		t.Error("Decode(\"\") expected error, got nil")
@@ -95,7 +95,7 @@ func TestBase62_DecodeEmptyString(t *testing.T) {
 }
 
 func TestBase62_DecodeInvalidChar(t *testing.T) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	_, err := c.Decode("!")
 	if err == nil {
 		t.Error("Decode(\"!\") expected error, got nil")

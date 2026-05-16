@@ -1,17 +1,16 @@
-package converter_test
+package radixconverter_test
 
 import (
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/converter"
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestCustomConverterRegistry_RegisterAndGet(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	defer r.Clear()
 
-	conv := strategies.NewAlphanumericUpper()
+	conv := radixconverter.NewAlphanumericUpper()
 	err := r.Register("upper", conv)
 	if err != nil {
 		t.Fatalf("Register error: %v", err)
@@ -27,10 +26,10 @@ func TestCustomConverterRegistry_RegisterAndGet(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_RegisterDuplicate(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	defer r.Clear()
 
-	conv := strategies.NewHex()
+	conv := radixconverter.NewHex()
 	_ = r.Register("hex", conv)
 	err := r.Register("hex", conv)
 	if err == nil {
@@ -39,7 +38,7 @@ func TestCustomConverterRegistry_RegisterDuplicate(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_GetUnregistered(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	_, err := r.Get("nonexistent")
 	if err == nil {
 		t.Fatal("Get unregistered expected error, got nil")
@@ -47,22 +46,22 @@ func TestCustomConverterRegistry_GetUnregistered(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_Has(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	defer r.Clear()
 
 	if r.Has("foo") {
 		t.Error("Has(\"foo\") = true, want false (not registered)")
 	}
 
-	_ = r.Register("foo", strategies.NewBase62())
+	_ = r.Register("foo", radixconverter.NewBase62())
 	if !r.Has("foo") {
 		t.Error("Has(\"foo\") = false, want true")
 	}
 }
 
 func TestCustomConverterRegistry_Unregister(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
-	_ = r.Register("temp", strategies.NewHex())
+	r := radixconverter.NewCustomConverterRegistry()
+	_ = r.Register("temp", radixconverter.NewHex())
 
 	if !r.Unregister("temp") {
 		t.Error("Unregister(\"temp\") = false, want true")
@@ -73,18 +72,18 @@ func TestCustomConverterRegistry_Unregister(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_UnregisterNonExistent(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	if r.Unregister("nope") {
 		t.Error("Unregister(\"nope\") = true, want false")
 	}
 }
 
 func TestCustomConverterRegistry_GetRegisteredNames(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	defer r.Clear()
 
-	_ = r.Register("a", strategies.NewHex())
-	_ = r.Register("b", strategies.NewBase62())
+	_ = r.Register("a", radixconverter.NewHex())
+	_ = r.Register("b", radixconverter.NewBase62())
 
 	names := r.GetRegisteredNames()
 	if len(names) != 2 {
@@ -93,8 +92,8 @@ func TestCustomConverterRegistry_GetRegisteredNames(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_Clear(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
-	_ = r.Register("x", strategies.NewAlphaOnly())
+	r := radixconverter.NewCustomConverterRegistry()
+	_ = r.Register("x", radixconverter.NewAlphaOnly())
 	r.Clear()
 
 	if r.Has("x") {
@@ -107,10 +106,10 @@ func TestCustomConverterRegistry_Clear(t *testing.T) {
 }
 
 func TestCustomConverterRegistry_GetAll(t *testing.T) {
-	r := converter.NewCustomConverterRegistry()
+	r := radixconverter.NewCustomConverterRegistry()
 	defer r.Clear()
 
-	conv := strategies.NewHex()
+	conv := radixconverter.NewHex()
 	_ = r.Register("hex", conv)
 
 	all := r.GetAll()

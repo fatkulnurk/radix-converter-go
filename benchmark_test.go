@@ -1,23 +1,21 @@
-package strategies_test
+package radixconverter_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
-// BenchmarkBase62_Encode measures the performance of Base62 encoding.
 func BenchmarkBase62_Encode(b *testing.B) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	for i := 0; i < b.N; i++ {
 		c.Encode(123456789)
 	}
 }
 
-// BenchmarkBase62_Decode measures the performance of Base62 decoding.
 func BenchmarkBase62_Decode(b *testing.B) {
-	c := strategies.NewBase62()
+	c := radixconverter.NewBase62()
 	encoded := c.Encode(123456789)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -25,16 +23,15 @@ func BenchmarkBase62_Decode(b *testing.B) {
 	}
 }
 
-// BenchmarkAll_Encode benchmarks encoding across all converter types.
 func BenchmarkAll_Encode(b *testing.B) {
 	converters := []interface {
 		Encode(uint64) string
 	}{
-		strategies.NewBase62(),
-		strategies.NewAlphanumericUpper(),
-		strategies.NewAlphanumericLower(),
-		strategies.NewAlphaOnly(),
-		strategies.NewHex(),
+		radixconverter.NewBase62(),
+		radixconverter.NewAlphanumericUpper(),
+		radixconverter.NewAlphanumericLower(),
+		radixconverter.NewAlphaOnly(),
+		radixconverter.NewHex(),
 	}
 
 	for _, c := range converters {
@@ -46,7 +43,6 @@ func BenchmarkAll_Encode(b *testing.B) {
 	}
 }
 
-// BenchmarkAll_Decode benchmarks decoding across all converter types.
 func BenchmarkAll_Decode(b *testing.B) {
 	type encoderDecoder interface {
 		Encode(uint64) string
@@ -54,11 +50,11 @@ func BenchmarkAll_Decode(b *testing.B) {
 	}
 
 	converters := []encoderDecoder{
-		strategies.NewBase62(),
-		strategies.NewAlphanumericUpper(),
-		strategies.NewAlphanumericLower(),
-		strategies.NewAlphaOnly(),
-		strategies.NewHex(),
+		radixconverter.NewBase62(),
+		radixconverter.NewAlphanumericUpper(),
+		radixconverter.NewAlphanumericLower(),
+		radixconverter.NewAlphaOnly(),
+		radixconverter.NewHex(),
 	}
 
 	for _, c := range converters {

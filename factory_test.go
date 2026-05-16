@@ -1,21 +1,19 @@
-package converter_test
+package radixconverter_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/converter"
-	"github.com/fatkulnurk/radix-converter-go/radixerrors"
-	"github.com/fatkulnurk/radix-converter-go/strategies"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestConverterFactory_MakeBuiltins(t *testing.T) {
-	f := converter.NewConverterFactory()
-	types := []converter.ConverterType{
-		converter.Base62,
-		converter.AlphanumericUpper,
-		converter.AlphanumericLower,
-		converter.AlphaOnly,
+	f := radixconverter.NewConverterFactory()
+	types := []radixconverter.ConverterType{
+		radixconverter.TypeBase62,
+		radixconverter.TypeAlphanumericUpper,
+		radixconverter.TypeAlphanumericLower,
+		radixconverter.TypeAlphaOnly,
 	}
 	for _, typ := range types {
 		c, err := f.Make(typ)
@@ -25,7 +23,6 @@ func TestConverterFactory_MakeBuiltins(t *testing.T) {
 		if c == nil {
 			t.Fatalf("Make(%q) returned nil converter", typ)
 		}
-		// Verify it works.
 		encoded := c.Encode(42)
 		decoded, err := c.Decode(encoded)
 		if err != nil {
@@ -38,12 +35,11 @@ func TestConverterFactory_MakeBuiltins(t *testing.T) {
 }
 
 func TestConverterFactory_MakeCustom(t *testing.T) {
-	// Register a custom converter.
-	custom := strategies.NewAlphanumericUpper()
-	converter.GlobalRegistry.Register("my_custom", custom)
-	defer converter.GlobalRegistry.Unregister("my_custom")
+	custom := radixconverter.NewAlphanumericUpper()
+	radixconverter.GlobalRegistry.Register("my_custom", custom)
+	defer radixconverter.GlobalRegistry.Unregister("my_custom")
 
-	f := converter.NewConverterFactory()
+	f := radixconverter.NewConverterFactory()
 	c, err := f.Make("my_custom")
 	if err != nil {
 		t.Fatalf("Make(\"my_custom\") unexpected error: %v", err)
@@ -54,20 +50,20 @@ func TestConverterFactory_MakeCustom(t *testing.T) {
 }
 
 func TestConverterFactory_MakeUnknown(t *testing.T) {
-	f := converter.NewConverterFactory()
+	f := radixconverter.NewConverterFactory()
 	_, err := f.Make("nonexistent")
 	if err == nil {
 		t.Fatal("Make(\"nonexistent\") expected error, got nil")
 	}
-	var radixErr *radixerrors.Error
+	var radixErr *radixconverter.Error
 	if !errors.As(err, &radixErr) {
-		t.Errorf("Make(\"nonexistent\") error is not a radixerrors.Error: %v", err)
+		t.Errorf("Make(\"nonexistent\") error is not a radixconverter.Error: %v", err)
 	}
 }
 
 func TestConverterFactory_EncodeDecode(t *testing.T) {
-	f := converter.NewConverterFactory()
-	c, err := f.Make(converter.Base62)
+	f := radixconverter.NewConverterFactory()
+	c, err := f.Make(radixconverter.TypeBase62)
 	if err != nil {
 		t.Fatalf("Make(Base62) error: %v", err)
 	}

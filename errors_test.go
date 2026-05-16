@@ -1,34 +1,33 @@
-package radixerrors_test
+package radixconverter_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/fatkulnurk/radix-converter-go/radixerrors"
+	"github.com/fatkulnurk/radix-converter-go"
 )
 
 func TestError_IsErrorType(t *testing.T) {
-	var err error = radixerrors.ErrNegativeInput
-	var target *radixerrors.Error
+	var err error = radixconverter.ErrNegativeInput
+	var target *radixconverter.Error
 	if !errors.As(err, &target) {
-		t.Fatal("ErrNegativeInput is not a *radixerrors.Error")
+		t.Fatal("ErrNegativeInput is not a *radixconverter.Error")
 	}
 }
 
 func TestError_MessageContainsInfo(t *testing.T) {
-	err := radixerrors.NewInvalidCharError('!')
+	err := radixconverter.NewInvalidCharError('!')
 	msg := err.Error()
 	if msg == "" {
 		t.Error("Error message is empty")
 	}
-	// Should contain the invalid char.
 	if !containsRune(msg, '!') {
 		t.Errorf("Error message %q does not contain the invalid char", msg)
 	}
 }
 
 func TestError_UnknownConverter(t *testing.T) {
-	err := radixerrors.NewUnknownConverterError("foo")
+	err := radixconverter.NewUnknownConverterError("foo")
 	msg := err.Error()
 	if !contains(msg, "foo") {
 		t.Errorf("Error message %q does not contain converter name \"foo\"", msg)
@@ -36,17 +35,16 @@ func TestError_UnknownConverter(t *testing.T) {
 }
 
 func TestError_Wrapping(t *testing.T) {
-	err := radixerrors.ErrEmptyEncoded
-	var target *radixerrors.Error
+	err := radixconverter.ErrEmptyEncoded
+	var target *radixconverter.Error
 	if !errors.As(err, &target) {
-		t.Fatal("ErrEmptyEncoded cannot be unwrapped as *radixerrors.Error")
+		t.Fatal("ErrEmptyEncoded cannot be unwrapped as *radixconverter.Error")
 	}
 }
 
 func TestError_ErrorsIs(t *testing.T) {
-	// Errors of type *radixerrors.Error should match each other via Is.
-	err1 := radixerrors.ErrNegativeInput
-	err2 := radixerrors.ErrNegativeInput
+	err1 := radixconverter.ErrNegativeInput
+	err2 := radixconverter.ErrNegativeInput
 	if !errors.Is(err1, err2) {
 		t.Error("ErrNegativeInput should be equal to itself via errors.Is")
 	}
