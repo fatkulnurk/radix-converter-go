@@ -36,7 +36,7 @@ func TestConverterFactory_MakeBuiltins(t *testing.T) {
 
 func TestConverterFactory_MakeCustom(t *testing.T) {
 	custom := radixconverter.NewAlphanumericUpper()
-	radixconverter.GlobalRegistry.Register("my_custom", custom)
+	_ = radixconverter.GlobalRegistry.Register("my_custom", custom)
 	defer radixconverter.GlobalRegistry.Unregister("my_custom")
 
 	f := radixconverter.NewConverterFactory()
